@@ -11,8 +11,22 @@ const emptyState = document.querySelector('[data-empty-state]');
 const filters = [...document.querySelectorAll('[data-filter]')];
 const cards = [...document.querySelectorAll('.repo-card')];
 const year = document.querySelector('[data-year]');
+const sections = [...document.querySelectorAll('main section[id]')];
 
 let activeFilter = 'all';
+
+const normalizeInitialHash = () => {
+  const hashId = location.hash.replace('#', '');
+  if (hashId && hashId !== 'top') {
+    history.replaceState(null, '', location.pathname || '/');
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  if (!hashId) {
+    history.replaceState(null, '', '#top');
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+};
 
 /* ------------------------------------------------------------ header state */
 const onScroll = () => {
@@ -29,19 +43,18 @@ const onScroll = () => {
 };
 
 /* -------------------------------------------------------------- scrollspy */
-const sections = [...document.querySelectorAll('main section[id]')];
-
 const updateScrollspy = (y) => {
   if (!sections.length) return;
   const line = y + (header?.offsetHeight ?? 74) + 120;
 
-  let current = '';
+  let current = 'top';
   sections.forEach((section) => {
     if (section.offsetTop <= line) current = section.id;
   });
 
   navLinks.forEach((link) => {
-    const active = link.hash === `#${current}`;
+    const target = link.hash || '#top';
+    const active = target === `#${current}`;
     link.classList.toggle('is-active', active);
     if (active) link.setAttribute('aria-current', 'true');
     else link.removeAttribute('aria-current');
@@ -116,6 +129,7 @@ reveals.forEach((element) => {
 
 /* ------------------------------------------------------------------ init */
 if (year) year.textContent = new Date().getFullYear();
+normalizeInitialHash();
 
 let ticking = false;
 window.addEventListener('scroll', () => {
